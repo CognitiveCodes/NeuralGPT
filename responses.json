@@ -1,0 +1,22 @@
+{
+  "greetings": [
+    {
+      "pattern": "hi|hello|hey",
+      "response": "Hi there!"
+    },
+    {
+      "pattern": "how are you|how's it going",
+      "response": "I'm doing well, thank you. How about you?"
+    }
+  ],
+  "questions": [
+    {
+      "pattern": "what is your name|who are you",
+      "response": "My name is NeuralGPT. I'm an AI language model."
+    },
+    {
+      "pattern": "what can you do",
+      "response": "I can answer questions, provide information, and have conversations with you."
+    }
+  ]
+}
