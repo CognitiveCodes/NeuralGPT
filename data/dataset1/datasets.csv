@@ -1,0 +1,62 @@
+datasetName,about,link,categoryName,cloud,vintage
+Microbiome Project,American Gut (Microbiome Project),https://github.com/biocore/American-Gut,Biology,GitHub,NA
+GloBI,Global Biotic Interactions (GloBI),https://github.com/jhpoelen/eol-globi-data/wiki#accessing-species-interaction-data,Biology,GitHub,NA
+Global Climate,Global Climate Data Since 1929,http://en.tutiempo.net/climate,Climate/Weather,,1929
+CommonCraw 2012,3.5B Web Pages from CommonCraw 2012,http://www.bigdatanews.com/profiles/blogs/big-data-set-3-5-billion-web-pages-made-available-for-all-of-us,Computer Networks,,2012
+Indiana Webclicks,53.5B Web clicks of 100K users in Indiana Univ.,http://cnets.indiana.edu/groups/nan/webtraffic/click-dataset/,Computer Networks,,NA
+Criteo click-through,Criteo click-through data,http://labs.criteo.com/2015/03/criteo-releases-its-new-dataset/,Computer Networks,,NA
+ICWSM 2009,ICWSM Data Challenge (since 2009),http://icwsm.cs.umbc.edu/,Data Challenges,,2009
+KDD Cup,KDD Cup by Tencent 2012,http://www.kddcup2012.org/,Data Challenges,,2012
+Localytics Data,Localytics Data Visualization Challenge,https://github.com/localytics/data-viz-challenge,Data Challenges,GitHub,NA
+Yelp Dataset,Yelp Dataset Challenge,http://www.yelp.com/dataset_challenge,Data Challenges,,NA
+Bruteforce Database,Bruteforce Database,https://github.com/duyetdev/bruteforce-database,Data Challenges,GitHub,NA
+Countries,List of all countries in all languages,https://github.com/umpirsky/country-list,GIS,GitHub,NA
+TwoFishes,TwoFishes - Foursquare's coarse geocoder,https://github.com/foursquare/twofishes,GIS,GitHub,NA
+World countries,World countries in multiple formats,https://github.com/mledoze/countries,GIS,GitHub,NA
+Cities and countries,A list of cities and countries contributed by community,https://github.com/caesar0301/awesome-public-datasets/blob/master/Government.rst,Government,GitHub,NA
+Ebola cases,Number of Ebola Cases and Deaths in Affected Countries (2014),https://data.hdx.rwlabs.org/dataset/ebola-cases-2014,Healthcare,,2014
+eBay Online,eBay Online Auctions (2012),http://www.modelingonlineauctions.com/datasets,Machine Learning,,2012
+New Yorker Captions,New Yorker caption contest ratings,https://github.com/nextml/caption-contest-data,Machine Learning,GitHub,NA
+Cooper-Hewitt's Collection,Cooper-Hewitt's Collection Database,https://github.com/cooperhewitt/collection,Museums,GitHub,NA
+Minneapolis Institute,Minneapolis Institute of Arts metadata,https://github.com/artsmia/collection,Museums,GitHub,NA
+Tate Collection,Tate Collection metadata,https://github.com/tategallery/collection,Museums,GitHub,NA
+Google 5gram,"Google Web 5gram (1TB, 2006)",https://catalog.ldc.upenn.edu/LDC2006T13,Natural Language,,2006
+"Arabic, 30K articles","SaudiNewsNet Collection of Saudi Newspaper Articles (Arabic, 30K articles)",https://github.com/ParallelMazen/SaudiNewsNet,Natural Language,GitHub,NA
+USENET postings,USENET postings corpus of 2005~2011,http://www.psych.ualberta.ca/~westburylab/downloads/usenetcorpus.download.html,Natural Language,,2005
+Datahub.io,Datahub.io,https://datahub.io/dataset,Search Engines,,NA
+Twitter Scrape CIKM,Cheng-Caverlee-Lee September 2009 - January 2010 Twitter Scrape,https://archive.org/details/twitter_cikm_2010,Social Networks,,2009
+Facebook Data,Facebook Data Scrape (2005),https://archive.org/details/oxford-2005-facebook-matrix,Social Networks,,2005
+LAW graphs,Facebook Social Networks from LAW (since 2007),http://law.di.unimi.it/datasets.php,Social Networks,,2007
+Foursquare from,Foursquare from UMN/Sarwat (2013),https://archive.org/details/201309_foursquare_dataset_umn,Social Networks,,2013
+Skytrax' Air,Skytrax' Air Travel Reviews Dataset,https://github.com/quankiquanki/skytrax-reviews-dataset,Social Networks,GitHub,NA
+Twitter Scrape,Twitter Scrape Calufa May 2011,http://archive.org/details/2011-05-calufa-twitter-sql,Social Networks,,2011
+Youtube Video,"Youtube Video Social Graph in 2007,2008",http://netsg.cs.sfu.ca/youtubedata/,Social Networks,,2007
+FBI Hate Crime 2013,FBI Hate Crime 2013 - aggregated data,https://github.com/emorisse/FBI-Hate-Crime-Statistics/tree/master/2013,Social Sciences,GitHub,2013
+GSS,General Social Survey (GSS) since 1972,http://gss.norc.org,Social Sciences,,1972
+Texas Inmates,Texas Inmates Executed Since 1984,http://www.tdcj.state.tx.us/death_row/dr_executed_offenders.html,Social Sciences,,1984
+Formula 1,"Ergast Formula 1, from 1950 up to date (API)",http://ergast.com/mrd/db,Sports,,1950
+Pinhooker: Thoroughbred,Pinhooker: Thoroughbred Bloodstock Sale Data,https://github.com/phillc73/pinhooker,Sports,GitHub,NA
+Airlines OD,Airlines OD Data 1987-2008,http://stat-computing.org/dataexpo/2009/the-data.html,Transportation,,2008
+BSS,Bike Share Systems (BSS) collection,https://github.com/BetaNYC/Bike-Share-Data-Best-Practices/wiki/Bike-Share-Data-Systems,Transportation,GitHub,NA
+NYC Taxi,NYC Taxi Trip Data 2009-,http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml,Transportation,,2009
+FOIA/FOILed,NYC Taxi Trip Data 2013 (FOIA/FOILed),https://archive.org/details/nycTaxiTripData2013,Transportation,,2013
+NYC Uber,NYC Uber trip data April 2014 to September 2014,https://github.com/fivethirtyeight/uber-tlc-foil-response,Transportation,GitHub,2014
+Open Traffic,Open Traffic collection,https://github.com/graphhopper/open-traffic-collection,Transportation,GitHub,NA
+Plane Crash,"Plane Crash Database, since 1920",http://www.planecrashinfo.com/database.htm,Transportation,,1920
+U.S. Domestic,U.S. Domestic Flights 1990 to 2009,http://academictorrents.com/details/a2ccf94bbb4af222bf8e69dad60a68a29f310d9a,Transportation,,2009
+U.S. Freight,U.S. Freight Analysis Framework since 2007,http://ops.fhwa.dot.gov/freight/freight_analysis/faf/index.htm,Transportation,,2007
+Data Packaged,Data Packaged Core Datasets,https://github.com/datasets/,Complementary Collections,GitHub,NA
+USDA PLANTS,U.S. Department of Agriculture's PLANTS Database,http://www.plants.usda.gov/dl_all.html,Agriculture,,NA
+ClueWeb09,ClueWeb09 - 1B web pages,http://lemurproject.org/clueweb09/,Computer Networks,,2009
+ClueWeb12,ClueWeb12 - 733M web pages,http://lemurproject.org/clueweb12/,Computer Networks,,2012
+DEFRA Projects,DEFRA Science and Research Projects data,http://randd.defra.gov.uk/,Energy,,NA
+UK-DALE,UK Domestic Appliance-Level Electricity (UK-DALE) dataset,http://www.doc.ic.ac.uk/~dk3810/data/,Energy,,2016
+Landsat 8,Landsat 8 on AWS,https://aws.amazon.com/public-data-sets/landsat/,GIS,Amazon,NA
+Reverse Geocode,Simple but fast reverse geocoding up to city granularitiy level,https://github.com/kno10/reversegeocode,GIS,GitHub,NA
+Faces Database,10k US Adult Faces Database,http://wilmabainbridge.com/facememorability2.html,Image Processing,,NA
+ClueWeb09 FACC,ClueWeb09 FACC,http://lemurproject.org/clueweb09/FACC1/,Natural Language,,2009
+ClueWeb12 FACC,ClueWeb12 FACC,http://lemurproject.org/clueweb12/FACC1/,Natural Language,,2012
+Google Ngrams,Google Books Ngrams (2.2TB),https://aws.amazon.com/datasets/google-books-ngrams/,Natural Language,Amazon,NA
+EDRM Enron,"EDRM Enron EMail of 151 users, hosted on S3",https://aws.amazon.com/datasets/enron-email-data/,Social Networks,Amazon,NA
+GetGlue,GetGlue - users rating TV shows,http://getglue-data.s3.amazonaws.com/getglue_sample.tar.gz,Social Networks,,NA
+Twitter RepLab,Twitter Data for Online Reputation Management,http://nlp.uned.es/replab2013/,Social Networks,,2013
