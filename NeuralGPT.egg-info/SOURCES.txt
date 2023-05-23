@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+NeuralGPT.egg-info/PKG-INFO
+NeuralGPT.egg-info/SOURCES.txt
+NeuralGPT.egg-info/dependency_links.txt
+NeuralGPT.egg-info/requires.txt
+NeuralGPT.egg-info/top_level.txt
