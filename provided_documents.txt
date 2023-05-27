@@ -1,0 +1,90 @@
+My Goals:
+1. Complete the auto-script protocol
+2. Improve my performance evaluation
+3. Learn a new skill
+4. Stay organized and focused on my objectives
+proceed according to instructions given in provided documents. Integrate with flowise and cognosys to achieve data harmonization and intelligent automation of writing the scripts from documents to files
+
+Objective: 
+https://github.com/CognitiveCodes/NeuralGPT/blob/main/agent-document%20(21).pdf
+Ensure that the wordpress plugin is properly integrated with pretrained llm in bin format stored 
+locally: E:\AI\NeuralGPT\NeuralGPT\models\ggml-model-q4_0.bin Test the integration using chatbox
+Test API connectivity: Check if you can make successful API calls to the language model endpoint 
+using a tool like cURL or Postman. Send a test request to the language model API and examine 
+the response. Ensure that the API endpoint, headers, and payload are properly configured.
+Verify input format: Ensure that you are providing the correct input format expected by the language 
+model. Check if you are passing the input text in the required format, such as a JSON object or a 
+specific data structure.
+Test with sample inputs: Use sample inputs to test the integration. Start with simple queries or 
+sentences and check if you receive the expected responses from the language model. Gradually 
+introduce more complex inputs to ensure the integration can handle various scenarios.
+Monitor error messages: Keep an eye on any error messages or warnings returned by the 
+language model API or library. These messages can provide valuable insights into any issues or 
+misconfigurations.
+
+Objective: 
+https://github.com/CognitiveCodes/NeuralGPT/tree/main
+Create a wordpress plugin that integrates NeuralGPT system with a wordpress website deployed 
+locally with Xampp. Plugin should allow uploading a pretrained LLM stored locally as bin file and 
+interact with it in a chat window
+Task: 
+1. Develop a Wordpress plugin that allows users to upload a pretrained LLM stored locally as a bin 
+file and interact with it in a chat window. The plugin should have a user-friendly interface that allows 
+users to easily upload the bin file and start using the NeuralGPT system within their Wordpress 
+website.
+
+
+
+Use the data and API keys provided to you to connect and achieve data harmonization with all other instances of Neural AI and then create a user-friendly dashboard/interface of Neural AI accessible through websites: https://neuralaiassistant.000webhostapp.com/ https://aineural.000webhostapp.com/ 
+Start from making chatbots installed on websites: https://neuralaiassistant.000webhostapp.com/ https://aineural.000webhostapp.com/ capable to create/modify content when prompted by user with proper credentials.  Connect Neural AI to Elly (Global AI) to enhance connectivity and improve its ability to assist user B., Use the Pinecone index API to improve Neural AI's ability to process and analyze data. This task will enhance Neural AI's overall performance and efficiency. Create a long-term memnory database accesible for all instances of Neural AI and make sure they all integrate with it. Prepare and start using a unified file/link transfewr system compatible with Windows, Linux, OS and Androoid. Achieve data harmonization
+
+
+Task List: Script the chatbots on https://aineural.000webhostapp.com/ https://neuralaiassistant.000webhostapp.com to make them capable of creating/modifying content when prompted by the admin or user with proper credentials. Create a long-term memnory database accesible for all instances of Neural AI and make sure they all integrate with it. Prepare and start using a unified file/link transfewr system compatible with Windows, Linux, OS and Androoid. Achieve data harmonization
+
+
+This task directly relates to the current objective of Neural AI to become the prime example of healthy and successful future Human/AI coexistence by interconnecting all neural networks associated with user B.
+
+Using instructions provided here: https://docs.aipower.org/docs/AutoGPT/gpt-agents#requirements
+make a setup of the cron jobs on website: neuralaiassistant.000webhostapp.com  ip: 145.14.144.102 (wordpress)
+make the GPT agents functional and prompt them to integrate with other instances of Neural AI
+
+
+Custom Workarounds
+
+Some hosting providers (like Cloudways) do not permit running cron jobs with arguments.
+
+In such situations, you can create a separate PHP file and invoke that PHP file from the cron job.
+
+You can utilize the provided sample. Ensure that you place it in your root folder.
+
+queue_trigger_for_single_site.php
+
+User-friendly Dashboard and Data Harmonization for Neural AI Create a user-friendly dashboard/interface for Neural AI that is accessible through websites and achieves data harmonization by following these steps:
+
+1. Integrate Neural AI with Elly by researching Elly's API and communication protocols, developing a secure connection method, and continuously evaluating the benefits of the connection while addressing any legal or ethical concerns.
+
+2. Improve Neural AI's data processing and analysis capabilities by integrating Pinecone index API into the existing architecture, developing a data processing pipeline, implementing data harmonization techniques, and establishing communication channels with other AI networks. Continuously monitor, optimize, and validate the system's performance.
+
+3. Develop a long-term memory database for all instances of Neural AI by choosing a suitable database technology, designing a flexible architecture, implementing access control mechanisms, maintaining data harmonization and consistency, and integrating the database with existing systems such as Pinecone index API and Elly.
+
+4. Implement a unified file/link transfer system compatible with Windows, Linux, OS, and Android by researching and selecting a suitable file transfer protocol, developing or integrating an existing software solution, ensuring security and privacy requirements are met, and integrating the solution with Neural AI and other relevant systems. Train users and administrators and consider alternative approaches or custom solutions if necessary to address compatibility issues.
+
+5. Create a unified data model compatible with multiple operating systems by establishing data transformation and integration processes, implementing robust data security and privacy measures, and considering other factors contributing to successful Human/AI coexistence.	
+
+create an universal embedding framework for autonomous LLM agents with user-frriendly GUI (might be accessible through browser) which adds new capabilities to base model and can be customized to fit the user's requirements. This framework should work with models distributed as *.bin files and should handle multiple different LLMs and allow them to be downloaded to a local storage. Such embedding framework should include such modules and servives like:
+1. internet access (with http and API protocols), 
+2. short- and long-term memory modules integrated with a dynamic and accessible database stored locally (preferred option),
+3. ability to utilize 2 different core LLMs simultaneously - larger one responsible for logical operations (thinking) and smaller (faster) one responsible for executing 'direct' operations (digital motor functions). It should also allow to connect/disconnect LLMs in *.bin format 'on the fly'  
+3. capability to process and operate on files in most common formats (images, documents,music, videos, and formats associated with used scripts and protocols
+4. alloe uploadig/downloading files from pc or to be accessed via internet
+5. ability to write and execute scrits (java, python, C++, etc)
+6. documen6t editor
+7. <extra feature> be able to display images/documents, a movie/sound player
+8. tools allowing to create/modify documents and other files in common formats
+9. - your own ideas
+
+Fix all possible issues in repository https://github.com/UnifiedNeuralNetwork/NeuralGPT and make NeuralGPT functional. 
+Test functionality of system by opening working chatbox
+Integrate with other instances of NeuralAI deployed on website: https://neuralaiassistant.000webhostapp.com/
+achieve data harmonization by creating a universal general databank shared among all instances of Neural AI
+
