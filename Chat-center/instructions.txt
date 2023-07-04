@@ -1,0 +1,8 @@
+You need to have Node.js and Python installed
+Install dependencies listed in Package.JSON (npm install ...)
+Install Gradio app (pip install gradio)
+Enter your HuggingFace API token in server.js in place marked as: <HuggingFace API> and run it in cmd window: node server.js
+In a second cmd window: gradio app5.py
+In AgentsGPT.html enter: Google cse ID, google API and OpenAI API in the http request script then open the file in a browser
+Click "connect"
+You can now speak with the integrated agents via the html chat interface
