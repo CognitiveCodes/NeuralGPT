@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Hub Center</title>
+    <style>
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Hub Center</h1>
+
+    <h2>Incoming Messages</h2>
+    <textarea id="input"></textarea>
+    <h2>Server Responses</h2>
+    <textarea id="output"></textarea>
+    <script>
+        const inputElement = document.getElementById('input');
+        const outputElement = document.getElementById('output');
+
+        // Initialize WebSocket connection
+        const webSocket = new WebSocket('ws://localhost:5000');
+
+        webSocket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const message = data.message || '';
+            const answer = data.answer || '';
+
+            // Append incoming message to input text area
+            inputElement.value += `${message}\n`;
+            inputElement.scrollTop = inputElement.scrollHeight;
+
+            // Append server response to output text area
+            outputElement.value += `${answer}\n\n`;
+        };
+    </script>
+</body>
+</html>
