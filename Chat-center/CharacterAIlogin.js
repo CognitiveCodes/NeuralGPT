@@ -3,7 +3,7 @@ const readline = require('readline');
 const CharacterAI = require('node_characterai');
 const characterAI = new CharacterAI();
 
-const token = "<ACCESS TOKEN>"; 
+const token = "<CHARACTER AI ACCESS TOKEN>"; 
 
 // Create a WebSocket client that connects to the server
 const ws = new WebSocket('ws://localhost:5000');
