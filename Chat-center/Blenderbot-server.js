@@ -185,7 +185,7 @@ async function askQuestion(question) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer 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",
+          Authorization: "Bearer <HF_API_KEY>",
         },
         body: JSON.stringify({
           inputs: {
