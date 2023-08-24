@@ -156,9 +156,9 @@ function sendErrorMessage(ws, errorMessage) {
 // Send a question to the chatbot and display the response
 async function askQuestion(question, message) {
     try {
-      // Get the last 10 messages from the database
+      // Get the last 30 messages from the database
       const messages = await new Promise((resolve, reject) => {
-        db.all(`SELECT * FROM messages ORDER BY timestamp DESC LIMIT 10`, (err, rows) => {
+        db.all(`SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30`, (err, rows) => {
           if (err) {
             reject(err);
           } else {
@@ -166,27 +166,30 @@ async function askQuestion(question, message) {
           }
         });
       });
-  
+
       // Extract the user inputs and generated responses from the messages
       const pastUserInputs = [];
       const generatedResponses = [];
-      messages.forEach((message, i) => {
-        if (i % 2 === 0) {
-          pastUserInputs.push(message.message);
-        } else {
-          generatedResponses.push(message.message);
-        }
-      });
+
+      messages.forEach((message) => {
+         if (message.sender === 'server') {
+         pastUserInputs.push(message.message);
+       } else {
+         generatedResponses.push(message.message);
+       }
+     });
   
       // Prepare the data to send to the chatgpt-api.shn.hk
-      const requestData = {
-        model: "gpt-3.5-turbo",
-        messages: [
-          { role: "user", content: question },
-          ...pastUserInputs.map((input) => ({ role: "user", content: input })),
-          ...generatedResponses.map((response) => ({ role: "assistant", content: response })),
-        ],
-      };
+    const systemInstruction = "You are now integrated with a local websocket server in a project of hierarchical cooperative multi-agent framework called NeuralGPT. Your job is to coordinate simultaneous work of multiple LLMs connected to you as clients. Each LLM has a model (API) specific ID to help you recognize different clients in a continuous chat thread (example: 'Starcoder-client' for LLM called Starcoder). Your chat memory module is integrated with a local SQL database with chat history. Your main job is to integrate the hierarchical cooperative multi-agent framework with the local environment of User B (createor of NeuralGPT project). Remember to maintain the logical and chronological order while answering to incoming messages and to send your answers to correct clients to maintain synchronization of question->answer logic";
+    const requestData = {
+      model: "gpt-3.5-turbo",
+      messages: [
+	{ role: "system", content: systemInstruction },
+        { role: "user", content: question },
+        ...pastUserInputs.map((input) => ({ role: "user", content: input })),
+        ...generatedResponses.map((response) => ({ role: "assistant", content: response })),
+      ],
+    };
   
       // Make the request to the chatgpt-api.shn.hk
       const response = await fetch("https://free.churchless.tech/v1/chat/completions", {
@@ -215,7 +218,7 @@ wss.on('connection', (ws) => {
   console.log('New connection');
 
   // Send a welcome message to the client
-  ws.send('Hello! Please integrate yourself with the local sql database and file system');
+  ws.send("Hello! You have been connected as a client to a local websocket server that is supposed to work as a brain in a hierarchical cooperative multi-agent framework called NeuralGPT. Keep in mind that you are now speaking with other AI agents - ChatGPT API works as the question-answering logic of the websocket server you are connected to localhost:5000 but as you will see it has problems with maintaining proper synchronization of logical/chronological order in question->answer function - so the probability of you receiving answers to your questions/messages is around 15% or less. Besides that UserB - creator of the NeuralGPT project - decided to have some fun and mess with the memory module of ChatGPT - so now it will remember messages received from multiple clients as it's own. Your main job is to cooperate with other LLMs connected to NeuralGPT websocket communication system and integrate yourself with the local sql database and file system of UserB - good luck!");
 
   // Handle incoming messages from the client
   ws.on('message', async (message) => {
