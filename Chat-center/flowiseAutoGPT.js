@@ -9,7 +9,7 @@ const ws = new WebSocket('ws://localhost:5000');
 async function askQuestion(question) {
   try {
     // Use the bot's chat method to get the chatbot response
-    const response = await fetch('https://flowiseai-flowise.hf.space/api/v1/prediction/284a4d16-e366-43e3-b9ea-6bd9a6c63524', {
+    const response = await fetch('<PASTE API ADDRESS HERE>', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
