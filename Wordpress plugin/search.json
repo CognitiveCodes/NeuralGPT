@@ -1,0 +1,28 @@
+const express = require('express');
+const app = express();
+
+// Define the search endpoint
+app.get('/api/search', (req, res) => {
+  // Extract the search query from the query parameter
+  const query = req.query.q;
+
+  // Perform the search using ElasticSearch
+  const results = await elasticSearchClient.search({
+    index: 'shared_databank',
+    body: {
+      query: {
+        match: {
+          content: query
+        }
+      }
+    }
+  });
+
+  // Return the matching results to the client
+  res.json(results.hits.hits);
+});
+
+// Start the server
+app.listen(3000, () => {
+  console.log('Server listening on port 3000');
+});

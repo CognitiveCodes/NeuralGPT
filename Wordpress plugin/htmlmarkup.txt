@@ -1,0 +1,8 @@
+<div id="neuralgpt-browse">
+    <form id="neuralgpt-browse-form">
+        <label for="neuralgpt-browse-search">Search:</label>
+        <input type="text" id="neuralgpt-browse-search" name="neuralgpt-browse-search">
+        <button type="submit">Search</button>
+    </form>
+    <ul id="neuralgpt-browse-results"></ul>
+</div>

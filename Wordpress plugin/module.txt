@@ -1,0 +1,38 @@
+
+<script type="module">
+  import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed@latest/dist/web.js"
+  
+  Chatbot.init({
+    chatflowid: "d196feb4-7375-4328-9f39-a3dfdef9a3f4",
+    apiHost: "http://localhost:3000",
+  })
+
+  const ideaProposer = () => {
+    const objectiveForm = document.querySelector('#objective-form')
+    const objectiveInput = document.querySelector('#objective')
+    const history = document.querySelector('#history')
+
+    objectiveForm.addEventListener('submit', (event) => {
+      event.preventDefault()
+      const idea = objectiveInput.value.trim()
+
+      if (idea) {
+        const message = document.createElement('p')
+        message.textContent = `You proposed: ${idea}`
+        history.appendChild(message)
+        objectiveInput.value = ''
+        // send the idea to the chatbot for further processing
+        Chatbot.sendText(idea)
+      }
+    })
+
+    Chatbot.on('message', (message) => {
+      const response = message.text
+      const messageElement = document.createElement('p')
+      messageElement.textContent = `Bot: ${response}`
+      history.appendChild(messageElement)
+    })
+  }
+
+  ideaProposer()
+</script>
