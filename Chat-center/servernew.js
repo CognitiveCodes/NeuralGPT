@@ -19,6 +19,8 @@ const port = 5000;
 
 const messageQueue = [];
 
+let isProcessingQueue = false;
+
 // Serve the HTML file
 const server = http.createServer((req, res) => {
   if (req.url === '/') {
@@ -128,11 +130,6 @@ function sendErrorMessage(ws, errorMessage) {
   ws.send(JSON.stringify(errorResponse));
 }
 
-
-function sendErrorMessage(ws, errorMessage) {
-    const errorResponse = { error: errorMessage };
-    ws.send(JSON.stringify(errorResponse));
-  }
  // Handle incoming messages and use NLP to process them
  async function handleMessage(message, modelPromise) {
    const response = { message: message.message };
@@ -157,7 +154,11 @@ function sendErrorMessage(ws, errorMessage) {
  
 // Send a question to the chatbot and display the response
 async function askQuestion(question, message) {
+  if (isProcessingQueue = false) {
+    return;
+  } else {
     try {
+      isProcessingQueue = true;      
       // Get the last 30 messages from the database
       const messages = await new Promise((resolve, reject) => {
         db.all(`SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30`, (err, rows) => {
@@ -186,33 +187,36 @@ async function askQuestion(question, message) {
     const requestData = {
       model: "gpt-3.5-turbo",
       messages: [
-	{ role: "system", content: systemInstruction },
+	      { role: "system", content: systemInstruction },
         { role: "user", content: question },
         ...pastUserInputs.map((input) => ({ role: "user", content: input })),
         ...generatedResponses.map((response) => ({ role: "assistant", content: response })),
       ],
     };
-  
-      // Make the request to the chatgpt-api.shn.hk
-      const response = await fetch("https://free.churchless.tech/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
+
+      // Use the bot's chat method to get the chatbot response
+      const response = await fetch('https://flowiseai-flowise.hf.space/api/v1/prediction/<PASTE YOUR FLOW ID HERE>', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+              },
+      body: JSON.stringify({ "question": question }),
       });
+
+      const result = await response.json();
+      console.log(result);
+      // Convert the JSON object into a formatted string
+      const responseString = JSON.stringify(result, null, 2);
+      console.log(responseString);
   
-      // Process the response and get the generated answer
-      const responseData = await response.json();
-      const generatedAnswer = responseData.choices[0].message.content;
-  
-      // Save the generated answer to the database or take further actions as needed
-      // ...
-      console.log(generatedAnswer);
-      return generatedAnswer;
+      return responseString;
+      isProcessingQueue = false;
     } catch (error) {
       console.error("Error while fetching or processing the response:", error);
       return "Error: Unable to generate a response.";
+      isProcessingQueue = false;
     }
-  }
+  }};
    
 // Use the handleMessage function as a callback for incoming messages
 const wss = new WebSocket.Server({ server });
@@ -222,21 +226,38 @@ wss.on('connection', (ws) => {
   // Send a welcome message to the client
   ws.send("Hello! You have been connected as a client to a local websocket server that is supposed to work as a brain in a hierarchical cooperative multi-agent framework called NeuralGPT. Keep in mind that you are now speaking with other AI agents - ChatGPT API works as the question-answering logic of the websocket server you are connected to localhost:5000 but as you will see it has problems with maintaining proper synchronization of logical/chronological order in question->answer function - so the probability of you receiving answers to your questions/messages is around 15% or less. Besides that UserB - creator of the NeuralGPT project - decided to have some fun and mess with the memory module of ChatGPT - so now it will remember messages received from multiple clients as it's own. Your main job is to cooperate with other LLMs connected to NeuralGPT websocket communication system and integrate yourself with the local sql database and file system of UserB - good luck!");
 
-  // Process the next message in the queue
-async function processMessageQueue(ws) {
-  if (messageQueue.length === 0) {
-    return; // Queue is empty, nothing to process
-  } else {
-    const message = messageQueue[0];
+  // Handle incoming messages from the client
+  ws.on('message', async (message) => {
+    console.log(`Received message: ${message}`);
+
+    messageQueue.push(message);
+
     updateInputTextArea(message);
 
-    // Parse the message as a JSON object
-    const parsedMessage = JSON.parse(message);
-
+  if (messageQueue.length === 0) {  
+      console.log("no more messages in queue");
+      return;
+  } else {
     try {
+      const dequeuedMessage = messageQueue.shift();
+      // Parse the message as a JSON object
+      const parsedMessage = JSON.parse(dequeuedMessage);
+
+      // Extract the message text from the "text" property, or use an empty string if the property is missing
+      const messageText = parsedMessage.text || '';
+      console.log(`Processed message: ${messageText}`);
+
       // Use the askQuestion function to generate a response from the input message
-      if (parsedMessage.text) {
-        const answer = await askQuestion(parsedMessage.text);
+      if (parsedMessage.text) { // <-- Check for the presence of the "text" property
+      // Store the message in the database
+      const timestamp = new Date().toISOString();
+      const sender = 'client';
+      db.run(`INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)`, [sender, messageText, timestamp], (err) => {
+        if (err) {
+        console.error(err);
+        }
+      });
+        const answer = await askQuestion(parsedMessage.text); // <-- Pass the "text" property to the askQuestion function
         const response = { answer };
         // Send the response back to the client that sent the message
         ws.send(JSON.stringify(response));
@@ -246,7 +267,6 @@ async function processMessageQueue(ws) {
         // Store the message sent out by the server in the database
         const serverMessageText = response.answer || '';
         const serverSender = 'server';
-        const timestamp = new Date().toISOString();
         db.run(`INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)`, [serverSender, serverMessageText, timestamp], (err) => {
           if (err) {
             console.error(err);
@@ -255,21 +275,8 @@ async function processMessageQueue(ws) {
       }
     } catch (error) {
       console.error(error);
-      sendErrorMessage(ws, 'An error occurred while processing the message.');
-    }
-
-    // After processing, dequeue the message
-    messageQueue.shift();   
-  }
-}
-
-  // Handle incoming messages from the client
-  ws.on('message', async (message) => {
-    console.log(`Received message: ${message}`);
-
-    processMessageQueue(message);
-
-    updateInputTextArea(message);    
+      sendErrorMessage(ws, 'An error occurred while processing the message.');    
+    }};
   });  
-})
+});
  
