@@ -60,7 +60,7 @@ async def askQuestion(question):
             "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Bearer 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",
+                "Authorization": "Bearer <PASTE_YOUR_HUGGINGFACE_TOKEN_HERE",
             },
             json={
                 "inputs": {
