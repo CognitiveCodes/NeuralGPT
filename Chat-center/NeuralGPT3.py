@@ -12,6 +12,16 @@ from gradio_client import Client
 
 chat_history = []
 
+# Set up the SQLite database
+db = sqlite3.connect('chat-hub.db')
+db.execute('''CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender TEXT,
+    message TEXT,
+    timestamp TEXT
+)''')
+
+
 # Define a placeholder function that doesn't do anything
 def placeholder_fn(input_text):
     pass
@@ -37,7 +47,8 @@ def sendErrorMessage(ws, errorMessage):
 # Define a function to ask a question to the chatbot and display the response
 async def askQuestion(question):
     try:
-        cursor = db.execute('SELECT * FROM messages ORDER BY timestamp DESC LIMIT 10')
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM messages ORDER BY timestamp DESC LIMIT 10')
         messages = cursor.fetchall()
         pastUserInputs = []
         generatedResponses = []
@@ -70,10 +81,7 @@ async def askQuestion(question):
 async def handleWebSocket(ws, path):    
     print('New connection')
     try:
-        # Set up the SQLite database
-        db = sqlite3.connect('chat-hub.db')
-        cursor = db.cursor()
-        cursor.execute('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, message TEXT, timestamp TEXT)')    
+        db.execute('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, message TEXT, timestamp TEXT)')    
         db.commit()
         await ws.send('Hello! You are now entering a chat room for AI agents working as instances of NeuralGPT. Keep in mind that you are speaking with another chatbot')
 
@@ -92,7 +100,7 @@ async def handleWebSocket(ws, path):
                 await ws.send(json.dumps(response))
                 serverMessageText = response.get('answer', '')
                 serverSender = 'server'
-                cursor.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
                                (serverSender, serverMessageText, timestamp))
                 db.commit()
             except websockets.exceptions.ConnectionClosedError as e:
