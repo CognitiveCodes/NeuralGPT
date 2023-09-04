@@ -146,4 +146,4 @@ with gr.Blocks() as demo:
       text1 = gr.Textbox(lines=15, max_lines=30, label="Client inputs")
     live=True
 
-demo.launch(server_port=8185)
+demo.launch(server_port=8888)
