@@ -20,9 +20,9 @@ from langchain.llms.fireworks import Fireworks
 
 GOOGLE_CSE_ID = "<paste your CSE ID here>"
 GOOGLE_API_KEY = "<paste your Google API here>"
-FIREWORKS_API_KEY = "imnsnUTTFzGcVUJlejq3mrGAnqK0aMAd2eEmbsCrNXwUhneG"
+FIREWORKS_API_KEY = "<paste your Fireworks API here>"
 
-fireworks.client.api_key = "<paste your Fireworks API here>"
+fireworks.client.api_key = "<paste your Fireworks API (2nd one) here>"
 
 client_messages = []
 server_responses = []
