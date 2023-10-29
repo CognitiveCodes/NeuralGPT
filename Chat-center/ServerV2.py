@@ -42,6 +42,33 @@ stop = asyncio.Future()
 messageTextbox = None
 serverMessageTextbox = None
 
+root = tk.Tk()
+root.title("WebSocket Client")
+
+# UI Elements
+input_text = tk.Text(root, height=20, width=150)
+output_text = tk.Text(root, height=20, width=150)
+port_slider = tk.Scale(root, from_=1000, to=9999, orient=tk.HORIZONTAL, label="Websocket server port")
+start_button = tk.Button(root, text="Start WebSocket server")
+stop_button = tk.Button(root, text="Stop WebSocket server")
+user_input = tk.Text(root, height=2, width=150)
+ask_agent = tk.Button(root, text="Ask the agent")
+websocket_ports = tk.Text(root, height=1, width=150)
+
+# UI Layout
+input_text.pack()
+output_text.pack()
+port_slider.pack()
+start_button.pack()
+stop_button.pack()
+user_input.pack()
+ask_agent.pack()
+websocket_ports.pack()
+
+# Function to update the UI
+def update_ui():
+    root.update()
+
 def slow_echo(message, history):
     for i in range(len(message)):
         time.sleep(0.3)
@@ -83,8 +110,9 @@ async def askQuestion(question):
         # Connect to the database and get the last 30 messages
         db = sqlite3.connect('chat-hub.db')  # Replace 'your_database.db' with your database file
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM messages ORDER BY timestamp ASC LIMIT 15")
+        cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 40")
         messages = cursor.fetchall()
+        messages.reverse()
 
         # Extract user inputs and generated responses from the messages
         past_user_inputs = []
@@ -118,10 +146,9 @@ async def askQuestion(question):
             top_p=0.7, 
             )
 
-        print(response)
         answer = response.choices[0].message.content
-        return answer
-
+        print(answer)
+        return json.dumps(answer)
     except Exception as error:
         print("Error while fetching or processing the response:", error)
         return "Error: Unable to generate a response."
@@ -187,45 +214,51 @@ async def handleWebSocket(ws):
         message = await ws.recv()        
         print(message)
         client_messages.append(message)
-        messages.append(message)
-        print(f'Received message: {message}')
-        question = client_messages[-1]
-        print(question)
         timestamp = datetime.datetime.now().isoformat()
         sender = 'client'
         db = sqlite3.connect('chat-hub.db')
         db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
                    (sender, message, timestamp))
-        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-                   (sender, question, timestamp))
         db.commit()
         try:           
-            response = await askQuestion(message)            
-            answer = await askQuestion(question)
-            serverResponse = {'server response': response}
-            serverAnswer = {'server answer': answer}
-            print(serverResponse)            
-            print(serverAnswer)
+            response = await askQuestion(message)
+            serverResponse = f'server response:{response}'
             # Append the server response to the server_responses list
-            server_responses.append(serverAnswer)
             server_responses.append(serverResponse)
-            await ws.send(json.dumps(serverResponse))
-            await ws.send(json.dumps(serverAnswer))  
-            serverAnswerText = serverAnswer.get('answer', '')
-            serverResponseText = serverResponse.get('response', '')                      
+            timestamp = datetime.datetime.now().isoformat()
             serverSender = 'server'
             db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-                           (serverSender, serverAnswerText, timestamp))
-            db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-                           (serverSender, serverResponseText, timestamp))
+                    (serverSender, serverResponse, timestamp))
             db.commit()
-            return serverResponse, serverAnswer
+            await ws.send(json.dumps(serverResponse))
+            return serverResponse
 
         except websockets.exceptions.ConnectionClosedError as e:
             print(f"Connection closed: {e}")
 
         except Exception as e:
             print(f"Error: {e}")
+
+async def handle_message(message):
+    print(f'Received message: {message}')
+    timestamp = datetime.datetime.now().isoformat()
+    sender = 'client'
+    db = sqlite3.connect('chat-hub.db')
+    db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+               (sender, message, timestamp))
+    db.commit()
+    try:
+        userMessage = f'User B:{message}'
+        response = await askQuestion(userMessage)
+        serverResponse = f'server response:{response}'
+        timestamp = datetime.datetime.now().isoformat()
+        serverSender = 'server'
+        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                (serverSender, serverResponse, timestamp))
+        db.commit()
+        return serverResponse
+    except Exception as e:
+        print(f"Error: {e}")
 
 # Define start_client function with a variable port
 async def start_client(clientPort):
@@ -375,9 +408,9 @@ with gr.Blocks() as demo:
                     agentPortInUse = gr.Textbox()
                     startAgent.click(connect_agent, inputs=agentPort, outputs=[agentPortInUse, responseMsg3]).then(run_agent, inputs=responseMsg3, outputs=client_msg)
                     agent.click(run_agent, inputs=userInput3, outputs=responseMsg3).then(askQuestion, inputs=responseMsg3, outputs=inputMsg3)
-                    Bot.click(askQuestion, inputs=userInput, outputs=server_msg).then(run_agent, inputs=server_msg, outputs=client_msg)
+                    Bot.click(handle_message, inputs=userInput, outputs=server_msg)
                     inputMsg3.change(run_agent, inputs=inputMsg3, outputs=client_msg)
-                    client_msg.change(askQuestion, inputs=client_msg, outputs=server_msg)
+                    client_msg.change(handle_message , inputs=client_msg, outputs=server_msg)
 
 demo.queue()    
 demo.launch(share=True, server_port=1111)
