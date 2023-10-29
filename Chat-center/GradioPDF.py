@@ -30,7 +30,7 @@ def pdf_to_text(pdf_file, query):
   text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
   texts = text_splitter.split_text(text)
 
-  embeddings = CohereEmbeddings(cohere_api_key="Ev0v9wwQPa90xDucdHTyFsllXGVHXouakUMObkNb")
+  embeddings = CohereEmbeddings(cohere_api_key="<PASTE COHERE API KEY HERE>")
   #vector store
   vectorstore = FAISS.from_texts(texts, embeddings)
 
