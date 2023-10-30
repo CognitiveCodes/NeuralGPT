@@ -56,8 +56,8 @@ from langchain.tools.file_management import (
 
 # Define the global constants for the API keys
 GOOGLE_CSE_ID = "<paste CSE ID>"
-GOOGLE_API_KEY = <paste Google API""
-FIREWORKS_API_KEY = "<paste Fireworks API"
+GOOGLE_API_KEY = "<paste Google API>"
+FIREWORKS_API_KEY = "<paste Fireworks API>"
             
 os.chdir("path/to/dir")
 working_directory = "path/to/dir"
