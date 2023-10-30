@@ -139,7 +139,7 @@ async def askQuestion(question):
             Tool(
                 name="sql_query",
                 func=ssql_query.run,
-                description="useful for when you summarize a conversation. The input to this tool should be a string, representing who will read this summary.",
+                description="useful for querying and processing data from a SQL database",
             ),
         ] SQLDatabaseToolkit(db=db, llm=llm(temperature=0))
         
