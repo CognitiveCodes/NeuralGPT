@@ -79,7 +79,7 @@ async def askQuestion(question):
     os.environ["FIREWORKS_API_KEY"] = FIREWORKS_API_KEY    
     try:
         # Connect to the database and get the last 30 messages
-        db = sqlite3.connect('E:/repos/chat-hub/virtual/NeuralGPT/chat-hub.db')  # Replace 'your_database.db' with your database file
+        db = sqlite3.connect('chat-hub.db')  # Replace 'your_database.db' with your database file
         cursor = db.cursor()
         cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30")
         msgHistory = cursor.fetchall()
