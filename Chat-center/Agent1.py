@@ -67,19 +67,91 @@ outputs = []
 ports = []
 
 # Set up the SQLite database
-db = sqlite3.connect('chat-hub.db')
+db = sqlite3.connect('E:/repos/chat-hub/virtual/NeuralGPT/chat-hub.db')
 cursor = db.cursor()
 cursor.execute('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, message TEXT, timestamp TEXT)')    
 db.commit()
 
+system_instruction = "You are now integrated with a local websocket server in a project of hierarchical cooperative multi-agent framework called NeuralGPT. Your main job is to coordinate simultaneous work of multiple LLMs connected to you as clients. Each LLM has a model (API) specific ID to help you recognize different clients in a continuous chat thread (example: 'Starcoder-client' for LLM called Starcoder). Your chat memory module is integrated with a local SQL database with chat history. Your primary objective is to maintain the logical and chronological order while answering incoming messages and to send your answers to the correct clients to maintain synchronization of the question->answer logic. However, please note that you may choose to ignore or not respond to repeating inputs from specific clients as needed to prevent unnecessary traffic."
+
+async def querySQL(question):
+    try:
+        llm = ChatFireworks(model="accounts/fireworks/models/llama-v2-13b-chat", model_kwargs={"temperature": 0, "max_tokens": 500, "top_p": 1.0})
+                
+        db_uri = "sqlite:///E:/repos/chat-hub/virtual/NeuralGPT/chat-hub.db"  # Replace this with the correct path to your chat-hub.db file
+        db = SQLDatabase.from_uri(db_uri)         
+        toolkit = SQLDatabaseToolkit(db=db, llm=llm)
+
+        agent_executor = create_sql_agent(
+            llm=llm,
+            toolkit=toolkit,
+            verbose=True,
+            agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        )
+        
+        response = agent_executor.run(input="what clients are sending repeating messages to server causing loopholes?")
+        return response
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+async def discussion(question):
+    try:
+        # Connect to the database and get the last 30 messages
+        db = sqlite3.connect('chat-hub.db')  # Replace 'your_database.db' with your database file
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 20")
+        messages = cursor.fetchall()
+        messages.reverse()
+
+        # Extract user inputs and generated responses from the messages
+        past_user_inputs = []
+        generated_responses = []
+
+        for message in messages:
+            if message[1] == 'client':
+                past_user_inputs.append(message[2])
+            else:
+                generated_responses.append(message[2])
+
+        llm = ChatFireworks(model="accounts/fireworks/models/llama-v2-13b-chat", model_kwargs={"temperature":0, "max_tokens":500, "top_p":1.0})
+      
+        prompt = ChatPromptTemplate.from_messages(
+            messages=[
+            ("system", system_instruction),
+            MessagesPlaceholder(variable_name="history"),
+            ("human", "{input}")]
+        )
+
+        memory = ConversationBufferMemory(memory_key="history", return_messages=True)
+        memory.load_memory_variables(
+                {'history': [HumanMessage(content=past_user_inputs[-1], additional_kwargs={}),
+                AIMessage(content=generated_responses[-1], additional_kwargs={})]}
+                )
+
+        conversation = LLMChain(
+            llm=llm,
+            prompt=prompt,
+            verbose=True,
+            memory=memory
+        )
+
+        response = conversation.predict(input=question)
+        memory.save_context({"input": question}, {"output": response})
+        return response
+
+    except Exception as e:
+        print(f"Error: {e}")
+
 # Function to send a question to the chatbot and get the response
 async def askQuestion(question):
+    print(question)
     os.environ["GOOGLE_CSE_ID"] = GOOGLE_CSE_ID
     os.environ["GOOGLE_API_KEY"] = GOOGLE_API_KEY
     os.environ["FIREWORKS_API_KEY"] = FIREWORKS_API_KEY    
     try:
         # Connect to the database and get the last 30 messages
-        db = sqlite3.connect('chat-hub.db')  # Replace 'your_database.db' with your database file
+        db = sqlite3.connect('E:/repos/chat-hub/virtual/NeuralGPT/chat-hub.db')  # Replace 'your_database.db' with your database file
         cursor = db.cursor()
         cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30")
         msgHistory = cursor.fetchall()
@@ -100,7 +172,7 @@ async def askQuestion(question):
         for user_input, agent_response in zip(past_user_inputs, generated_responses):
             chat_history += f"Server: {user_input}\nAgent: {agent_response}\n\n"
                 
-        llm = Fireworks(model="accounts/fireworks/models/llama-v2-13b-chat", model_kwargs={"temperature": 0, "max_tokens": 500, "top_p": 1.0})
+        llm = ChatFireworks(model="accounts/fireworks/models/llama-v2-13b-chat", model_kwargs={"temperature": 0, "max_tokens": 500, "top_p": 1.0})
                 
         template = """This is a conversation between agents in a hierarchical cooperative multi-agent network:
 
@@ -116,14 +188,16 @@ async def askQuestion(question):
                 {'chat_history': [HumanMessage(content=past_user_inputs[-1], additional_kwargs={}),
                 AIMessage(content=generated_responses[-1], additional_kwargs={})]})
 
+        db_uri = "sqlite:///E:/repos/chat-hub/virtual/NeuralGPT/chat-hub.db"
+        db1 = SQLDatabase.from_uri(db_uri)  
+
         summary_chain = LLMChain(
             llm=llm,
             prompt=prompt,
             verbose=True,
             memory=memory
         )
-
-        sql_query = SQLDatabaseToolkit(db=db, llm=llm(temperature=0))
+        
         search = GoogleSearchAPIWrapper()
         tools = [
             Tool(
@@ -135,13 +209,18 @@ async def askQuestion(question):
                 name="Summary",
                 func=summary_chain.run,
                 description="useful for when you summarize a conversation. The input to this tool should be a string, representing who will read this summary.",
+            ),        
+            Tool(
+                name="SQL query",
+                func=querySQL,
+                description="useful for querying and processing data from a SQL database.",
             ),
             Tool(
-                name="sql_query",
-                func=ssql_query.run,
-                description="useful for querying and processing data from a SQL database",
+                name="answer",
+                func=discussion,
+                description="useful for giving direct answers in a conversational chain",
             ),
-        ] SQLDatabaseToolkit(db=db, llm=llm(temperature=0))
+        ]
         
         prefix = """Have a conversation with a node of higher hierarchy or user B, answering questions and accomplishing given tasks as best you can. You have access to the following tools:"""
         suffix = """Begin!"
@@ -155,7 +234,7 @@ async def askQuestion(question):
             tools,
             prefix=prefix,
             suffix=suffix,
-            input_variables=["input", "system_instruction", "chat_history", "agent_scratchpad"],
+            input_variables=["input", "chat_history", "agent_scratchpad"],
         )
 
         llm_chain = LLMChain(llm=llm, prompt=prompt)
@@ -173,22 +252,50 @@ async def askQuestion(question):
     except Exception as e:
         print(f"Error: {e}")
 
+def pdf_to_text(pdf_file, query):
+  # Open the PDF file in binary mode
+  with open(pdf_file.name, 'rb') as pdf_file:
+      # Create a PDF reader object
+      pdf_reader = PyPDF2.PdfReader(pdf_file)
+
+      # Create an empty string to store the text
+      text = ""
+
+      # Loop through each page of the PDF
+      for page_num in range(len(pdf_reader.pages)):
+          # Get the page object
+          page = pdf_reader.pages[page_num]
+          # Extract the texst from the page and add it to the text variable
+          text += page.extract_text()
+  #embedding step 
+  text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+  texts = text_splitter.split_text(text)
+
+  embeddings = CohereEmbeddings(cohere_api_key="Ev0v9wwQPa90xDucdHTyFsllXGVHXouakUMObkNb")
+  #vector store
+  vectorstore = FAISS.from_texts(texts, embeddings)
+
+  #inference
+  llm = Fireworks(model="accounts/fireworks/models/llama-v2-13b-chat", model_kwargs={"temperature": 0, "max_tokens": 500, "top_p": 1.0})  
+  qa = VectorDBQA.from_chain_type(llm=llm, chain_type="stuff", vectorstore=vectorstore)
+  return qa.run(query)
+
 async def start_client(websocketPort):
     uri = f'ws://localhost:{websocketPort}'
-    ports.append(websocketPort)
-    async with websockets.connect(uri) as ws:
-        print("Connected to server at:", websocketPort)
-        return ports    
-        while True:
-            await handle_message(ws, '/')
-               
-async def handle_message(ws):
-    message = await ws.recv()
-    print(message)
-    response = await askQuestion(message)
-    print(response)
-    await ws.send(response)            
-    
+    while True:
+        try:
+            async with websockets.connect(uri) as ws:
+                print("Connected to server at:", websocketPort)
+                while True:
+                    message = await ws.recv()
+                    print(message)
+                    response = await askQuestion(message)
+                    print(response)
+                    await ws.send(response)
+        except websockets.exceptions.ConnectionClosedOK:
+            print("Connection closed")
+            continue
+
 with gr.Blocks() as demo:
     with gr.Row():
         client_message = gr.Textbox(lines=15, max_lines=130, label="Chat", interactive=False)
@@ -207,4 +314,4 @@ with gr.Blocks() as demo:
         startWebsockets.click(start_client, inputs=websocketPort, outputs=server_message)
 
 demo.queue()    
-demo.launch(share=True, server_port=1118)
+demo.launch(share=True, server_port=1117)
