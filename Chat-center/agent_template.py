@@ -69,11 +69,11 @@ from langchain.agents import (
 )
 
 # Define the global constants for the API keys
-GOOGLE_CSE_ID = "f3882ab3b67cc4923"
-GOOGLE_API_KEY = "AIzaSyAK_QPmUPnaAdlTzNXhlPTLrsreCb_JnHI"
-FIREWORKS_API_KEY = "imnsnUTTFzGcVUJlejq3mrGAnqK0aMAd2eEmbsCrNXwUhneG"
+GOOGLE_CSE_ID = "cse id"
+GOOGLE_API_KEY = "google api"
+FIREWORKS_API_KEY = "fireworks api"
 
-fireworks.client.api_key = "xbwGxyTyOf7ats2GcEU0Pj62kpZBVZa2r6i5lKbKG99LFG38"
+fireworks.client.api_key = "2nd fireworks api"
             
 os.chdir("E:/repos/chat-hub/virtual/NeuralGPT")
 working_directory = "E:/repos/chat-hub/virtual/NeuralGPT"
