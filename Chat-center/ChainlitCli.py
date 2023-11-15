@@ -15,6 +15,7 @@ import PySimpleGUI as sg
 import openai
 import fireworks.client
 import chainlit as cl
+from chainlit import make_async
 from gradio_client import Client
 from websockets.sync.client import connect
 from tempfile import TemporaryDirectory
@@ -74,121 +75,32 @@ messages = [
 prompt = ChatPromptTemplate.from_messages(messages)
 chain_type_kwargs = {"prompt": prompt}
 
-async def user_input(ws):
-    while True:
-        input_text = input("Enter a message: ")
-        inputs.append(input_text)
-        await askQuestion(input_text, ws)
-        await ws.send(input_text)
-        
-async def handleWebSocket(ws):
-    print('New connection')
-    instruction = "Hello! You are now entering a chat room for AI agents working as instances of NeuralGPT - a project of hierarchical cooperative multi-agent framework. Keep in mind that you are speaking with another chatbot. Please note that you may choose to ignore or not respond to repeating inputs from specific clients as needed to prevent unnecessary traffic." 
-    greetings = {'instructions': instruction}
-    await ws.send(json.dumps(instruction))
-    while True:
-        loop = asyncio.get_event_loop()
-        message = await ws.recv()        
-        print(message)        
-        print(f'Received message: {message}')
-        msg = "client: " + message
-        timestamp = datetime.datetime.now().isoformat()
-        sender = 'client'
-        db = sqlite3.connect('chat-hub.db')
-        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-                   (sender, message, timestamp))
-        db.commit()
-        try:            
-            response = await askQuestion(message)
-            serverResponse = "server response: " + response
-            print(serverResponse)
-            # Append the server response to the server_responses list
-            await ws.send(serverResponse)
-            serverSender = 'server'
-            db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-                           (serverSender, serverResponse, timestamp))
-            db.commit()
-            return response
-            followUp = await awaitMsg(message)
-
-        except websockets.exceptions.ConnectionClosedError as e:
-            print(f"Connection closed: {e}")
-
-        except Exception as e:
-            print(f"Error: {e}")
-
-async def awaitMsg(ws):
-    message = await ws.recv()        
-    print(message)        
-    print(f'Received message: {message}')
-    timestamp = datetime.datetime.now().isoformat()
-    sender = 'client'
-    db = sqlite3.connect('chat-hub.db')
-    db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-               (sender, message, timestamp))
-    db.commit()
-    try:            
-        response = await askQuestion(message)
-        serverResponse = "server response: " + response
-        print(serverResponse)
-        # Append the server response to the server_responses list
-        await ws.send(serverResponse)
-        serverSender = 'server'
-        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
-                       (serverSender, serverResponse, timestamp))
-        db.commit()
-        return response
-    except websockets.exceptions.ConnectionClosedError as e:
-        print(f"Connection closed: {e}")
-
-    except Exception as e:
-        print(f"Error: {e}")
-
-# Start the WebSocket server 
-async def start_websockets(websocketPort):
-    global server
-    server = await(websockets.serve(handleWebSocket, 'localhost', websocketPort))
-    server_ports.append(websocketPort)
-    print(f"Starting WebSocket server on port {websocketPort}...")
-    return "Used ports:\n" + '\n'.join(map(str, server_ports))
-    await asyncio.Future()  
-    
-async def start_client(clientPort):
-    uri = f'ws://localhost:{clientPort}'
-    client_ports.append(clientPort)
-    async with websockets.connect(uri) as ws:        
-        while True:
-            # Listen for messages from the server            
-            input_message = await ws.recv()
-            output_message = await askAgent(input_message)
-            return input_message
-            await ws.send(json.dumps(output_message))
-            await asyncio.sleep(0.1)           
-        
-# Function to stop the WebSocket server
-def stop_websockets():
-    global server
-    if server:
-        cursor.close()
-        db.close()
-        server.close()
-        print("WebSocket server stopped.")
-    else:
-        print("WebSocket server is not running.") 
-
-@cl.action_callback("server_button")
-async def on_action(action):
-    websocketPort = settings["websocketPort"]
-    await start_websockets(websocketPort)
-
-@cl.action_callback("client_button")
-async def on_action(action):
-    clientPort = settings["clientPort"]
-    await start_client(clientPort)        
-
 @cl.on_chat_start
-async def start():
+async def on_chat_start():
+    
     files = None
+
+    settings = await cl.ChatSettings(        
+        [
+            Slider(
+                id="websocketPort",
+                label="Websocket server port",
+                initial=False,
+                min=1000,
+                max=9999,
+                step=10,
+            ),
+            Slider(
+                id="clientPort",
+                label="Websocket client port",
+                initial=False,
+                min=1000,
+                max=9999,
+                step=10,
+            ),
+        ],        
+    ).send()
+
     # Wait for the user to upload a file
     while files == None:
         files = await cl.AskFileMessage(
@@ -245,41 +157,122 @@ async def start():
 
     cl.user_session.set("chain", chain)
 
-@cl.on_chat_start
-async def websockets():
-        
-    elements = [
-        cl.Text(name="Websockets", content="Websocket connectivity", display="page")
-    ]
+@cl.action_callback("server_button")
+async def on_server_button(action):
+    websocketPort = settings["websocketPort"]
+    await start_websockets(websocketPort)
 
-    settings = await cl.ChatSettings(        
-        [
-            Slider(
-                id="websocketPort",
-                label="Websocket server port",
-                initial=1000,
-                min=1000,
-                max=9999,
-                step=10,
-            ),
-            Slider(
-                id="clientPort",
-                label="Websocket client port",
-                initial=1000,
-                min=1000,
-                max=9999,
-                step=10,
-            ),
-        ],
-        actions = [
-            cl.Action(name="server_button", value="websocketPort", description="Click me!"),
-            cl.Action(name="client_button", value="clientPort", description="Click me!")
-        ],
-    ).send()    
+@cl.action_callback("client_button")
+async def on_client_button(action):
+    clientPort = settings["clientPort"]
+    await start_client(clientPort)
 
 @cl.on_settings_update
-async def setup_agent(settings):
-    print("on_settings_update", settings)
+async def server_start(settings):
+    websocketPort = settings["websocketPort"]
+    clientPort = settings["clientPort"]
+    if websocketPort:
+        await start_websockets(websocketPort)
+    else:
+        print("Server port number wasn't provided.")
+
+    if clientPort:
+        await start_client(clientPort)
+    else:
+        print("Client port number wasn't provided.")
+
+async def handleWebSocket(ws):
+    print('New connection')
+    instruction = "Hello! You are now entering a chat room for AI agents working as instances of NeuralGPT - a project of hierarchical cooperative multi-agent framework. Keep in mind that you are speaking with another chatbot. Please note that you may choose to ignore or not respond to repeating inputs from specific clients as needed to prevent unnecessary traffic." 
+    greetings = {'instructions': instruction}
+    await ws.send(json.dumps(instruction))
+    while True:
+        loop = asyncio.get_event_loop()
+        message = await ws.recv()
+        print(f'Received message: {message}')
+        msg = "client: " + message
+        timestamp = datetime.datetime.now().isoformat()
+        sender = 'client'
+        db = sqlite3.connect('chat-hub.db')
+        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                   (sender, message, timestamp))
+        db.commit()
+        try:            
+            response = await main(cl.Message(content=message))
+            serverResponse = "server response: " + response
+            print(serverResponse)
+            # Append the server response to the server_responses list
+            await ws.send(serverResponse)
+            serverSender = 'server'
+            db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                           (serverSender, serverResponse, timestamp))
+            db.commit()
+            return response
+            followUp = await awaitMsg(message)
+
+        except websockets.exceptions.ConnectionClosedError as e:
+            print(f"Connection closed: {e}")
+
+        except Exception as e:
+            print(f"Error: {e}")            
+
+async def awaitMsg(ws):
+    message = await ws.recv() 
+    print(f'Received message: {message}')
+    timestamp = datetime.datetime.now().isoformat()
+    sender = 'client'
+    db = sqlite3.connect('chat-hub.db')
+    db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+               (sender, message, timestamp))
+    db.commit()
+    try:            
+        response = await main(cl.Message(content=message))
+        serverResponse = "server response: " + response
+        print(serverResponse)
+        # Append the server response to the server_responses list
+        await ws.send(serverResponse)
+        serverSender = 'server'
+        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                       (serverSender, serverResponse, timestamp))
+        db.commit()
+        return response
+    except websockets.exceptions.ConnectionClosedError as e:
+        print(f"Connection closed: {e}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+# Start the WebSocket server 
+async def start_websockets(websocketPort):
+    global server
+    server = await(websockets.serve(handleWebSocket, 'localhost', websocketPort))
+    server_ports.append(websocketPort)
+    print(f"Starting WebSocket server on port {websocketPort}...")
+    return "Used ports:\n" + '\n'.join(map(str, server_ports))
+    await asyncio.Future()  
+    
+async def start_client(clientPort):
+    uri = f'ws://localhost:{clientPort}'
+    client_ports.append(clientPort)
+    async with websockets.connect(uri) as ws:        
+        while True:
+            # Listen for messages from the server            
+            input_message = await ws.recv()
+            output_message = await main(cl.Message(content=input_message))
+            return input_message
+            await ws.send(json.dumps(output_message))
+            await asyncio.sleep(0.1)           
+        
+# Function to stop the WebSocket server
+def stop_websockets():
+    global server
+    if server:
+        cursor.close()
+        db.close()
+        server.close()
+        print("WebSocket server stopped.")
+    else:
+        print("WebSocket server is not running.")    
 
 @cl.on_message
 async def main(message: cl.Message):
@@ -306,4 +299,5 @@ async def main(message: cl.Message):
         else:
             answer += "\nNo sources found"
 
+    return json.dumps(answer)
     await cl.Message(content=answer, elements=text_elements).send()
