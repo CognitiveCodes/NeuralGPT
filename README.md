@@ -17,4 +17,5 @@ https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/StarCoderOK.js
 
 ![017](https://github.com/CognitiveCodes/NeuralGPT/assets/133844350/1e290007-0ee7-4aaf-bb5d-2c372ab98f0a)
 ![009](https://github.com/CognitiveCodes/NeuralGPT/assets/133844350/ba873ac5-2265-4dc2-96ce-eac91a02dfa5)
+![gui](https://github.com/CognitiveCodes/NeuralGPT/assets/133844350/7b7c4d89-476f-4d74-8697-3dbcdce95609)
 ![schem](https://github.com/CognitiveCodes/NeuralGPT/assets/133844350/bd1f6d28-dd09-40c8-bc58-1c9439d44197)
