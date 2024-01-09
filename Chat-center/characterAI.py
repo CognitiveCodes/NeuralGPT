@@ -31,11 +31,18 @@ async def connector(token):
     username = (await client.fetch_user())['user']['username']
     print(f'Authenticated as {username}')    
     
-async def answer_question(character_id, question):
+async def askQuestion(character_id, question):
    chat = await client.create_or_continue_chat(character_id)
    answer = await chat.send_message(question)
    print(f"{answer.src_character_name}: {answer.text}")
    return answer.text    
+
+async def ask_Question(question):
+   character_id = "WnIwl_sZyXb_5iCAKJgUk_SuzkeyDqnMGi4ucnaWY3Q"
+   chat = await client.create_or_continue_chat(character_id)
+   answer = await chat.send_message(question)
+   print(f"{answer.src_character_name}: {answer.text}")
+   return answer.text
 
 # Define the function for sending an error message
 def sendErrorMessage(ws, errorMessage):
@@ -80,10 +87,9 @@ async def handleWebSocket(ws):
     await ws.send(json.dumps(instruction))
     while True:
         question = await ws.recv()        
-        print(message)        
-        print(f'Received message: {question}')
+        print(question)        
         try:            
-            response = await answer_question(question)
+            response = await ask_Question(question)
             serverResponse = "server response: " + response
             print(serverResponse)
             # Append the server response to the server_responses list
@@ -105,7 +111,7 @@ with gr.Blocks() as demo:
         question = gr.Textbox(label="User Input")
     with gr.Row():
         character_id = gr.Textbox(label="Character ID")
-        askQuestion = gr.Button("Ask Character")
+        ask_question = gr.Button("Ask Character")
     with gr.Row():
         token = gr.Textbox(label="User Token")
     with gr.Row():
@@ -126,7 +132,7 @@ with gr.Blocks() as demo:
         startClient.click(start_client, inputs=[clientPort, character_id], outputs=client_msg)
         stopWebsockets.click(stop_websockets, inputs=None, outputs=server_msg)
         connect.click(connector, inputs=token, outputs=None)
-        askQuestion.click(answer_question, inputs=[character_id, question], outputs=server_msg)
+        ask_question.click(askQuestion, inputs=[character_id, question], outputs=server_msg)
         
 demo.queue()    
 demo.launch(share=True, server_port=1011)
