@@ -14,6 +14,9 @@ https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/FireworksAgent
 https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/TkDocsBot.py
 https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/Docsbotport.html
 https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/StarCoderOK.js
+https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/flowise%20ulitmatum.html
+https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/Chaindesk%20Agent.html
+https://github.com/CognitiveCodes/NeuralGPT/blob/main/Chat-center/characterAI.py
 
 ![017](https://github.com/CognitiveCodes/NeuralGPT/assets/133844350/1e290007-0ee7-4aaf-bb5d-2c372ab98f0a)
 ![009](https://github.com/CognitiveCodes/NeuralGPT/assets/133844350/ba873ac5-2265-4dc2-96ce-eac91a02dfa5)
