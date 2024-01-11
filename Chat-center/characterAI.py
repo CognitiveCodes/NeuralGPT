@@ -11,7 +11,6 @@ import asyncio
 import time
 import gradio as gr
 import fireworks.client
-import PySimpleGUI as sg
 from gradio_client import Client
 from bs4 import BeautifulSoup
 from pathlib import Path
