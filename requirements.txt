@@ -6,3 +6,4 @@ websocket
 asyncio
 bs4
 pysimplegui
+g4f
