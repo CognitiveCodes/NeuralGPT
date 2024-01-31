@@ -7,3 +7,4 @@ asyncio
 bs4
 pysimplegui
 g4f
+gpt4free
