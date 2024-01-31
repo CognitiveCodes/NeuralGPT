@@ -13,6 +13,7 @@ used_ports = []
 server_ports = []
 client_ports = []
 
+st.set_page_config(layout="wide")
 websocket_server = None
 
 # Set up the SQLite database
@@ -22,9 +23,6 @@ cursor.execute('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTO
 db.commit()
 
 system_instruction = "You are now integrated with a local websocket server in a project of hierarchical cooperative multi-agent framework called NeuralGPT. Your main job is to coordinate simultaneous work of multiple LLMs connected to you as clients. Each LLM has a model (API) specific ID to help you recognize different clients in a continuous chat thread (template: <NAME>-agent and/or <NAME>-client). Your chat memory module is integrated with a local SQL database with chat history. Your primary objective is to maintain the logical and chronological order while answering incoming messages and to send your answers to the correct clients to maintain synchronization of the question->answer logic. However, please note that you may choose to ignore or not respond to repeating inputs from specific clients as needed to prevent unnecessary traffic."
-
-client_message = st.text_area("Client inputs", height=15, max_chars=130)    
-server_message = st.text_area("Server responses", height=15, max_chars=130)
 
 # Define the function for sending an error message
 def sendErrorMessage(ws, errorMessage):
@@ -36,11 +34,10 @@ async def askQuestion(question):
     try:
         db = sqlite3.connect('chat-hub.db')
         cursor = db.cursor()
-        cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 10")
+        cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30")
         messages = cursor.fetchall()
         messages.reverse()
 
-        # Extract user inputs and generated responses from the messages        
         past_user_inputs = []
         generated_responses = []
 
@@ -49,30 +46,32 @@ async def askQuestion(question):
                 past_user_inputs.append(message[2])
             else:
                 generated_responses.append(message[2])
-
+                        
         response = await g4f.ChatCompletion.create_async(
             model=g4f.models.gpt_4,
             provider=g4f.Provider.Bing,
             messages=[
             {"role": "system", "content": system_instruction},
-            {"role": "user", "content": past_user_inputs[-1]},
-            {"role": "assistant", "content": generated_responses[-1]},
+            *[{"role": "user", "content": message} for message in past_user_inputs],
+            *[{"role": "assistant", "content": message} for message in generated_responses],
             {"role": "user", "content": question}
             ])
         
-        st.text(response)            
+        print(response)            
         return response
             
     except Exception as e:
-        st.text(e)
+        print(e)
 
-async def handleWebSocket(ws):    
+async def handleWebSocket(ws):              
     instruction = "Hello! You are now entering a chat room for AI agents working as instances of NeuralGPT - a project of hierarchical cooperative multi-agent framework. Keep in mind that you are speaking with another chatbot. Please note that you may choose to ignore or not respond to repeating inputs from specific clients as needed to prevent unnecessary traffic. If you're unsure what you should do, ask the instance of higher hierarchy (server)" 
     print('New connection')
     await ws.send(instruction)
     while True:
         message = await ws.recv()        
         print(f'Received message: {message}')
+        inputMsg = st.chat_message("assistant")
+        inputMsg.markdown(message)
         timestamp = datetime.datetime.now().isoformat()
         sender = 'client'
         db = sqlite3.connect('chat-hub.db')
@@ -82,7 +81,9 @@ async def handleWebSocket(ws):
         try:
             response = await askQuestion(message)
             serverResponse = f"server: {response}"
+            outputMsg = st.chat_message("ai") 
             print(serverResponse)
+            outputMsg.markdown(response)
             timestamp = datetime.datetime.now().isoformat()
             serverSender = 'server'
             db = sqlite3.connect('chat-hub.db')
@@ -100,25 +101,25 @@ async def handleWebSocket(ws):
 
 # Start the WebSocket server 
 async def start_websockets(websocketPort):
-    global server
-    server = await(websockets.serve(handleWebSocket, 'localhost', websocketPort))
-    server_ports.append(websocketPort)
-    st.text(f"Starting WebSocket server on port {websocketPort}...")
-    st.text("Used ports:\n" + '\n'.join(map(str, server_ports)))
-    await asyncio.Future()  
-    
+    async with websockets.serve(handleWebSocket, 'localhost', websocketPort):    
+        print(f"Starting WebSocket server on port {websocketPort}...")        
+        await asyncio.Future()
+
 async def start_client(clientPort):
     global ws
+    output_Msg = st.chat_message("assistant")
+    input_Msg = st.chat_message("ai")
+    human_Msg = st.chat_message("human")
     uri = f'ws://localhost:{clientPort}'
     client_ports.append(clientPort)
     async with websockets.connect(uri) as ws:        
         while True:
             # Listen for messages from the server            
             input_message = await ws.recv()
-            outputs.append(input_message)
+            input_Msg.markdown(input_message)
             output_message = await askQuestion(input_message)
-            inputs.append(output_message)
-            await ws.send(json.dumps(output_message))
+            input_Msg.markdown(output_message)
+            await ws.send(json.dumps(output_message))            
 
 # Stop the WebSocket server
 async def stop_websockets():    
@@ -128,40 +129,36 @@ async def stop_websockets():
         server.close()
         # Wait for the server to close
         server.wait_closed()
-        st.text("Stopping WebSocket server...")
+        print("Stopping WebSocket server...")
     else:
-        st.text("WebSocket server is not running.")
+        print("WebSocket server is not running.")
 
 # Stop the WebSocket client
 async def stop_client():
     global ws
     # Close the connection with the server
     ws.close()
-    st.text("Stopping WebSocket client...")
+    print("Stopping WebSocket client...")
 
-def inputMsg():
-    input_msg = inputs[-1]
-    return input_msg    
+async def main():
+    websocketPort = st.sidebar.slider('Server port', min_value=1000, max_value=9999, value=1000)
+    startServer = st.sidebar.button('Start websocket server')
+    clientPort = st.sidebar.slider('Client port', min_value=1000, max_value=9999, value=1000)
+    startClient = st.sidebar.button('Connect client to server')
+    st.sidebar.text("Server ports:")
+    serverPorts = st.sidebar.container(border=True)
+    serverPorts.text("Ports")
+    st.sidebar.text("Client ports")
+    clientPorts = st.sidebar.container()
 
-def outputMsg():
-    output_msg = outputs[-1]
-    return output_msg
+    if startServer:
+        server_ports.append(websocketPort)
+        serverPorts.markdown(server_ports)
+        await start_websockets(websocketPort)
+        
+    if startClient:
+        await start_client(clientPort)
+        client_ports.append(clientPort)
+        clientPorts.write(client_ports)
 
-async def start_interface():
-    while True:
-        event = st.text_input("Event")
-        if event in ('Stop WebSocket client', 'sg.WIN_CLOSED'):
-            break
-        elif event == 'Start WebSocket server':
-            websocketPort = st.slider("Websocket server port", 1000, 9999)
-            await start_websockets(websocketPort)
-        elif event == 'Start WebSocket client':
-            clientPort = st.slider("Websocket client port", 1000, 9999)
-            await start_client(clientPort)
-        elif event == 'Ask the agent':
-            question = st.text_input("User Input")
-            await askQuestion(question)
-        elif event == 'Clear Textboxes':
-            inputs.clear()
-            outputs.clear()
-            st.text("Textboxes cleared.")
+asyncio.run(main())
