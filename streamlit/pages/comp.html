@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HuggingFace Chat Interface</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    #chatbox {
+      height: 300px;
+      width: 1080px;
+      border: 1px solid black;
+      overflow: auto;
+      padding: 10px;
+    }
+    #inputbox {
+      height: 20px;
+      width: 1080px;
+      border: 1px solid black;
+      padding: 10px;
+    }
+    .led {
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .led-on {
+      background-color: green;
+    }
+    .led-off {
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Chaindesk Chat Interface</h1>
+  <div id="status">
+    <span>Module Running:</span>
+    <span class="led led-off" id="module-led"></span>
+    <br>
+    <span>Chathub Connected:</span>
+    <span class="led led-off" id="chathub-led"></span>
+    <br>
+    <div id="status-msg"></div>
+  </div>
+  <input type="text" id="port" placeholder="websocket port">
+  <input type="text" id="flowise" placeholder="paste your agent id here">
+  <button id="connector">CONNECT TO SERVER</button>  
+  <input type="text" id="inputbox" placeholder="Type your message here...">
+  <button id="sendbtn">Send</button>
+  <div id="chatbox"></div>
+  <br><br>  
+  <button id="clearbtn">New Chat (or Clear)</button>
+  <button id="testbtn">Test Server</button>
+  <p id="result"></p>
+  <script>
+    const mled = document.getElementById("module-led");
+    const sled = document.getElementById("chathub-led");
+    const testbtn = document.getElementById("testbtn");
+    const result = document.getElementById("result");
+    const chatbox = document.getElementById("chatbox");
+    const port = document.getElementById("port");
+    const connector = document.getElementById("connector");
+    const inputbox = document.getElementById("inputbox");
+    const sendbtn = document.getElementById("sendbtn");
+    const clearbtn = document.getElementById("clearbtn");
+  
+    let ws; // WebSocket object
+  
+    // Add a click event listener to the 'test server' button
+    testbtn.addEventListener("click", async () => {
+      try {      
+        const response = await fetch("http://127.0.0.1:1111");
+  
+        if (response.ok) {
+          result.textContent = "Port 1111 is free";
+        } else {
+          result.textContent = "Port 1111 is occupied";
+        }
+      } catch (error) {         
+        result.textContent = "Cannot connect to port 1111";
+      }
+    });
+
+// Send a question to the chatbot and display the response
+async function askQuestion(question) {
+  try {
+    const id = flowise.value
+    const url = `https://api.chaindesk.ai/agents/query/${id}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer 5315cd7b-bb79-49bc-bca2-8bcc7b243504'
+      },
+      body: JSON.stringify({ query: question }),
+    });
+    const responseJson = await response.json();
+    const outputText = responseJson.answer;
+    // Display the conversation in the chatbox
+    chatbox.innerHTML += `<p><strong>You:</strong> ${question}</p>`;
+    chatbox.innerHTML += `<p><strong>DataberryBot:</strong> ${outputText}</p>`;
+    chatbox.scrollTop = chatbox.scrollHeight;
+
+    // Check if WebSocket connection is open before sending message to the server
+    if (ws.readyState === WebSocket.OPEN) {
+      const message = JSON.stringify({ text: outputText });
+      ws.send(message);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Use the received text as the question input for the chatbot and display the conversation
+function handleServerMessage(event) {
+  // Extract the received text message from the event object
+  const receivedText = event.data;
+  // Ask the chatbot the received question
+  askQuestion(receivedText);
+}
+    // Add a click event listener to the 'connect to server' button
+    connector.addEventListener("click", async () => {
+      try {
+        const websocketPort = port.value;        
+        const localPort = `ws://localhost:${websocketPort}`;  
+        // Establish a WebSocket connection to the server
+        ws = new WebSocket(localPort);
+  
+        // Change the LED status to 'on'
+        sled.classList.remove("led-off");
+        sled.classList.add("led-on");
+  
+        // Display a success message
+        const statusMsg = document.getElementById("status-msg");
+        statusMsg.textContent = "Connected successfully to port:", websocketPort;
+  
+        // Listen for incoming messages from the server
+        ws.onmessage = handleServerMessage;
+  
+        // Listen for the WebSocket connection to close
+        ws.onclose = () => {
+          // Change the LED status to 'off'
+          sled.classList.remove("led-on");
+          sled.classList.add("led-off");
+  
+          // Display a disconnected message
+          const statusMsg = document.getElementById("status-msg");
+          statusMsg.textContent = "Disconnected from server.";
+        };
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  
+  // Add a click event listener to the 'send' button
+  sendbtn.addEventListener("click", async () => {
+    const inputText = inputbox.value;
+      chatbox.innerHTML += `<p><strong>User:</strong> ${inputText}</p>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    if (inputText.trim() !== "") {     
+      // Send message to the server
+      const message = JSON.stringify({ text: 'userB: ' + inputText });
+      askQuestion(message);
+      ws.send(message);
+     }
+  });
+
+  // Listen for messages from the server
+  ws.onmessage = (event) => {
+    const receivedMessage = event.data;
+    displayMessage(receivedMessage, "server");
+  };
+</script>
+</body>
+</html>
