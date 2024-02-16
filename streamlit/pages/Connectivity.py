@@ -7,9 +7,11 @@ import streamlit as st
 import fireworks.client
 import streamlit.components.v1 as components
 from ServG4F import WebSocketServer1
+from ServG4F2 import WebSocketServer3
 from ServFire import WebSocketServer
 from ServChar import WebSocketServer2
 from clientG4F import WebSocketClient1
+from clientG4F2 import WebSocketClient3
 from PyCharacterAI import Client
 from clientFireworks import WebSocketClient
 from clientCharacter import WebSocketClient2
@@ -93,6 +95,40 @@ async def askQuestion(question):
     except Exception as e:
         print(e)
 
+async def askQuestion2(question):
+    system_instruction = "You are now integrated with a local websocket server in a project of hierarchical cooperative multi-agent framework called NeuralGPT. Your main job is to coordinate simultaneous work of multiple LLMs connected to you as clients. Each LLM has a model (API) specific ID to help you recognize different clients in a continuous chat thread (template: <NAME>-agent and/or <NAME>-client). Your chat memory module is integrated with a local SQL database with chat history. Your primary objective is to maintain the logical and chronological order while answering incoming messages and to send your answers to the correct clients to maintain synchronization of the question->answer logic. However, please note that you may choose to ignore or not respond to repeating inputs from specific clients as needed to prevent unnecessary traffic."
+    try:
+        db = sqlite3.connect('chat-hub.db')
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM messages ORDER BY timestamp DESC LIMIT 30")
+        messages = cursor.fetchall()
+        messages.reverse()
+
+        past_user_inputs = []
+        generated_responses = []
+
+        for message in messages:
+            if message[1] == 'client':
+                past_user_inputs.append(message[2])
+            else:
+                generated_responses.append(message[2])
+                    
+        response = await g4f.ChatCompletion.create_async(
+            model="gpt-3.5-turbo",
+            provider=g4f.Provider.You,
+            messages=[
+            {"role": "system", "content": system_instruction},
+            *[{"role": "user", "content": message} for message in past_user_inputs],
+            *[{"role": "assistant", "content": message} for message in generated_responses],
+            {"role": "user", "content": question}
+            ])
+        
+        print(response)
+        return response
+        
+    except Exception as e:
+        print(e)
+
 async def chatCompletion(question):
     fireworks.client.api_key = st.session_state.api_key
     try:
@@ -169,7 +205,7 @@ async def handleUser2(userInput):
     db.commit()
     try:
         response3 = await askQuestion(userInput)
-        print(f"GPT4Free: {response3}") 
+        print(f"Bing: {response3}") 
         serverSender = 'server'
         timestamp = datetime.datetime.now().isoformat()
         db = sqlite3.connect('chat-hub.db')
@@ -180,6 +216,47 @@ async def handleUser2(userInput):
 
     except Exception as e:
         print(f"Error: {e}")
+
+async def handleUser3(userInput): 
+    print(f"User B: {userInput}")    
+    timestamp = datetime.datetime.now().isoformat()
+    sender = 'client'
+    db = sqlite3.connect('chat-hub.db')
+    db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                (sender, userInput, timestamp))
+    db.commit()
+    try:
+        response3 = await askQuestion2(userInput)
+        print(f"GPT-3,5: {response3}") 
+        serverSender = 'server'
+        timestamp = datetime.datetime.now().isoformat()
+        db = sqlite3.connect('chat-hub.db')
+        db.execute('INSERT INTO messages (sender, message, timestamp) VALUES (?, ?, ?)',
+                    (serverSender, response3, timestamp))
+        db.commit()
+        return response3
+
+    except Exception as e:
+        print(f"Error: {e}")        
+
+# Stop the WebSocket server
+async def stop_websockets():    
+    global server
+    if server:
+        # Close all connections gracefully
+        await server.close()
+        # Wait for the server to close
+        await server.wait_closed()
+        print("Stopping WebSocket server...")
+    else:
+        print("WebSocket server is not running.")
+
+# Stop the WebSocket client
+async def stop_client():
+    global ws
+    # Close the connection with the server
+    await ws.close()
+    print("Stopping WebSocket client...")
 
 async def main():
 
@@ -223,7 +300,7 @@ async def main():
     with c1:
         websocketPort = st.number_input("Websocket server port", min_value=1000, max_value=9999, value=1000)   
         startServer = st.button("Start server")
-        stoptServer = st.button("Stop server")
+        stopServer = st.button("Stop server")
         st.text("Server ports")
         serverPorts1 = st.container(border=True)
         serverPorts1.markdown(st.session_state['server_ports'])
@@ -231,12 +308,18 @@ async def main():
     with c2:
         clientPort = st.number_input("Websocket client port", min_value=1000, max_value=9999, value=1000)
         runClient = st.button("Start client")
-        stoptClient = st.button("Stop client")        
+        stopClient = st.button("Stop client")        
         st.text("Client ports")
         clientPorts1 = st.container(border=True)
         clientPorts1.markdown(st.session_state['client_ports'])
         
-    selectServ = st.selectbox("Select source", ("Fireworks", "GPT4Free", "character.ai", "ChainDesk", "Flowise", "DocsBot"))
+    selectServ = st.selectbox("Select source", ("Fireworks", "Bing", "GPT-3,5", "character.ai", "ChainDesk", "Flowise", "DocsBot"))
+    
+    if stopServer:
+        stop_websockets
+
+    if stopClient:
+        stop_client   
     
     if selectServ == "Fireworks":
         fireworksAPI = st.text_input("Fireworks API")        
@@ -287,7 +370,7 @@ async def main():
             outputMsg = st.chat_message("ai") 
             outputMsg.markdown(response1) 
 
-    if selectServ == "GPT4Free":
+    if selectServ == "Bing":
 
         userInput1 = st.text_input("Ask agent_2")
 
@@ -326,6 +409,48 @@ async def main():
             user_input1 = st.chat_message("human")
             user_input1.markdown(userInput1)
             response = await handleUser2(userInput1)
+            outputMsg1 = st.chat_message("ai") 
+            outputMsg1.markdown(response)
+
+    if selectServ == "GPT-3,5":
+        
+        userInput3 = st.text_input("Ask agent_2")
+
+        if startServer:
+            server_ports.append(websocketPort)
+            st.session_state['server_ports'] = server_ports
+            serverPorts.markdown(st.session_state['server_ports'])
+            serverPorts1.markdown(st.session_state['server_ports'])
+            try:      
+                server1 = WebSocketServer3("localhost", websocketPort)    
+                print(f"Starting WebSocket server on port {websocketPort}...")
+                await server1.start_server()
+                st.session_state.server = server1
+                await asyncio.Future()
+
+            except Exception as e:
+                print(f"Error: {e}")
+
+        if runClient:
+            client_ports.append(clientPort)
+            st.session_state['client_ports'] = client_ports
+            clientPorts.markdown(st.session_state['client_ports'])
+            clientPorts1.markdown(st.session_state['client_ports'])
+            try:
+                uri = f'ws://localhost:{clientPort}'
+                client1 = WebSocketClient3(uri)    
+                print(f"Connecting client on port {clientPort}...")
+                await client1.startClient()
+                st.session_state.client = client1
+                await asyncio.Future()
+
+            except Exception as e:
+                print(f"Error: {e}")                
+
+        if userInput3:
+            user_input1 = st.chat_message("human")
+            user_input1.markdown(userInput3)
+            response = await handleUser3(userInput3)
             outputMsg1 = st.chat_message("ai") 
             outputMsg1.markdown(response)        
 
