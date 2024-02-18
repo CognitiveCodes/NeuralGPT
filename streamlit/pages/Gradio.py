@@ -291,7 +291,7 @@ async def main():
             portsG4F = st.container(border=True)
             portsG4F.markdown(serv_g4f)                 
 
-    async def run_websockets2(token, characterID, websocketPort):
+    async def run_websockets2(websocketPort, token, characterID):
         global server
         client = Client()
         serv_char.append(websocketPort)
@@ -299,6 +299,8 @@ async def main():
         username = (await client.fetch_user())['user']['username']        
         user_id.markdown(username)
         st.session_state.user_ID = username
+        st.session_state.character_ID = characterID
+        st.session_state.tokenChar = token
         try:      
             server2 = WebSocketServer2("localhost", websocketPort)    
             print(f"Starting WebSocket server on port {websocketPort}...")
@@ -442,17 +444,9 @@ async def main():
         chatbox.markdown("chuj")
 
         with gr.Blocks() as demo:
-            chuje = st.container(border=True)
-            chuje.markdown("w pite")
             with gr.Tabs(elem_classes="tab-buttons") as tabs:
-                chujee = st.container(border=True)
-                chujee.markdown("w pitke")
-                with gr.TabItem("Websocket Server", elem_id="websocket_server", id=0):                    
-                    chujew = st.container(border=True)
-                    chujew.markdown("w pite 3")
-                    with gr.Row():                  
-                        chatarea = st.container(border=True)
-                        chatarea.markdown(st.session_state['chat_history'])
+                with gr.TabItem("Fireworks Llama2", elem_id="fireworks_server", id=0):
+                    with gr.Row():
                         # Use the client_messages list to update the messageTextbox
                         client_msg = gr.Textbox(lines=5, max_lines=130, label="Client messages", interactive=False)     
                         # Use the server_responses list to update the serverMessageTextbox
@@ -541,7 +535,7 @@ async def main():
                         stop_Websockets.click(stop_websockets, inputs=None, outputs=port1)
 
                         start_Server.click(run_websockets2, inputs=[token, character_id, websocketsPort], outputs=ports)
-                        startCharacter.click(run_character, inputs=[token, character_id, characterPort], outputs=None)
+                        startCharacter.click(run_character, inputs=[characterPort, token, character_id], outputs=None)
                         stop_Websockets.click(stop_websockets, inputs=None, outputs=ports)
                         connect.click(connector, inputs=token, outputs=user)
                         ask_question.click(askCharacter, inputs=[token, character_id, userInput2], outputs=serverMsg)
