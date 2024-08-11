@@ -1,0 +1,16 @@
+asyncio
+g4f
+openai
+requests
+datetime
+sqlite3
+websockets
+json
+anthropic
+streamlit
+fireworks-client
+PyCharacterAI
+langchain
+chromadb
+pdfplumber
+PySimpleGUI
